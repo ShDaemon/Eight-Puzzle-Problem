@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, RefreshCcw, Crown, User, Cpu, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Play, RefreshCcw, Crown, User, Cpu, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import Link from 'next/link';
 
 // --- Types ---
@@ -17,7 +17,7 @@ export default function NQueens() {
     // --- State: AI Solver ---
     const [aiBoard, setAiBoard] = useState<number[]>([]); // index = row, value = col
     const [isSolving, setIsSolving] = useState(false);
-    const [speed, setSpeed] = useState(200);
+    const [speed, setSpeed] = useState(100);
     const stopRef = useRef(false);
 
     // --- State: User Game ---
@@ -143,15 +143,19 @@ export default function NQueens() {
                 <ArrowLeft className="mr-2" size={20} /> Back to Hub
             </Link>
 
-            <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-8 lg:gap-12">
+            {/* Layout Grid:
+                Mobile: Flex Column (Controls -> Board -> Algo).
+                Desktop: Grid (Controls Left Top, Algo Left Bottom, Board Right Spanning 2 Rows)
+            */}
+            <div className="max-w-6xl mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-12">
 
-                {/* --- LEFT COLUMN: CONTROLS --- */}
-                <div className="lg:col-span-4 space-y-6">
+                {/* --- 1. CONTROLS (Top Left) --- */}
+                <div className="lg:col-span-4 flex flex-col gap-6">
 
                     {/* Header */}
                     <div className="bg-neutral-900/80 backdrop-blur-sm p-6 rounded-3xl border border-neutral-800 shadow-xl">
-                        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            <Crown className="text-purple-500" fill="currentColor" size={32} /> N-Queens
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                            <Crown className="text-purple-500 shrink-0" fill="currentColor" size={32} /> N-Queens
                         </h1>
                         <p className="text-neutral-400 text-sm">
                             Place <strong className="text-purple-400">{n}</strong> queens so none attack each other.
@@ -159,18 +163,18 @@ export default function NQueens() {
                     </div>
 
                     {/* Mode Switcher */}
-                    <div className="bg-neutral-900/50 p-2 rounded-2xl flex gap-1 border border-neutral-800">
+                    <div className="bg-neutral-900/50 p-1.5 rounded-2xl flex gap-1 border border-neutral-800 overflow-hidden">
                         <button
                             onClick={() => setMode('ai')}
-                            className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${mode === 'ai' ? 'bg-neutral-800 text-white shadow-lg' : 'text-neutral-500 hover:text-neutral-300'}`}
+                            className={`flex-1 py-3 rounded-xl text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all whitespace-nowrap ${mode === 'ai' ? 'bg-neutral-800 text-white shadow-lg' : 'text-neutral-500 hover:text-neutral-300'}`}
                         >
-                            <Cpu size={16} /> AI Solver
+                            <Cpu size={16} className="shrink-0" /> AI Solver
                         </button>
                         <button
                             onClick={() => setMode('user')}
-                            className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${mode === 'user' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-neutral-500 hover:text-neutral-300'}`}
+                            className={`flex-1 py-3 rounded-xl text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all whitespace-nowrap ${mode === 'user' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-neutral-500 hover:text-neutral-300'}`}
                         >
-                            <User size={16} /> Play Yourself
+                            <User size={16} className="shrink-0" /> Play Yourself
                         </button>
                     </div>
 
@@ -205,7 +209,7 @@ export default function NQueens() {
                                     <button
                                         onClick={solveAI}
                                         disabled={isSolving}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/20"
+                                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/20 whitespace-nowrap"
                                     >
                                         {isSolving ? 'Solving...' : 'Start AI'} <Play size={18} fill="currentColor" />
                                     </button>
@@ -251,8 +255,8 @@ export default function NQueens() {
                     </div>
                 </div>
 
-                {/* --- RIGHT COLUMN: BOARD --- */}
-                <div className="lg:col-span-8 flex flex-col items-center justify-start min-h-[600px]">
+                {/* --- 2. BOARD (Right Column / Middle on Mobile) --- */}
+                <div className="lg:col-span-8 lg:row-span-2 flex flex-col items-center justify-start min-h-[500px]">
                     <div className="relative w-full max-w-[600px] bg-neutral-900 p-4 md:p-8 rounded-[2rem] border border-neutral-800 shadow-2xl">
 
                         {/* Grid Container */}
@@ -261,17 +265,14 @@ export default function NQueens() {
                             style={{
                                 gridTemplateColumns: `repeat(${n}, 1fr)`,
                                 width: '100%',
-                                aspectRatio: '1/1' // Forces square aspect ratio
+                                aspectRatio: '1/1'
                             }}
                         >
                             {Array.from({ length: n * n }).map((_, i) => {
                                 const r = Math.floor(i / n);
                                 const c = i % n;
-
-                                // Checkerboard Logic
                                 const isDark = (r + c) % 2 === 1;
 
-                                // Determine Cell State
                                 let hasQueen = false;
                                 let isConflict = false;
 
@@ -289,17 +290,13 @@ export default function NQueens() {
                                         whileHover={mode === 'user' ? { scale: 0.95 } : {}}
                                         whileTap={mode === 'user' ? { scale: 0.9 } : {}}
                                         className={`
-                      relative w-full aspect-square rounded-md flex items-center justify-center transition-all duration-200 overflow-hidden
-                      ${mode === 'user' ? 'cursor-pointer hover:ring-2 hover:ring-white/20' : 'cursor-default'}
-                      
-                      /* Colors */
-                      ${isDark ? 'bg-neutral-900' : 'bg-neutral-700'}
-                      
-                      /* State Colors */
-                      ${isConflict ? 'bg-red-900/50 ring-2 ring-red-500 z-10' : ''}
-                      ${!isConflict && hasQueen && mode === 'user' ? 'ring-2 ring-purple-500 z-10' : ''}
-                      ${gameStatus === 'won' && hasQueen ? 'bg-emerald-900/50 ring-2 ring-emerald-500' : ''}
-                    `}
+                                          relative w-full aspect-square rounded-md flex items-center justify-center transition-all duration-200 overflow-hidden
+                                          ${mode === 'user' ? 'cursor-pointer hover:ring-2 hover:ring-white/20' : 'cursor-default'}
+                                          ${isDark ? 'bg-neutral-900' : 'bg-neutral-700'}
+                                          ${isConflict ? 'bg-red-900/50 ring-2 ring-red-500 z-10' : ''}
+                                          ${!isConflict && hasQueen && mode === 'user' ? 'ring-2 ring-purple-500 z-10' : ''}
+                                          ${gameStatus === 'won' && hasQueen ? 'bg-emerald-900/50 ring-2 ring-emerald-500' : ''}
+                                        `}
                                     >
                                         <AnimatePresence>
                                             {hasQueen && (
@@ -315,7 +312,6 @@ export default function NQueens() {
                                             )}
                                         </AnimatePresence>
 
-                                        {/* Hover Guide (User Mode) */}
                                         {mode === 'user' && !hasQueen && (
                                             <div className="absolute w-2 h-2 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         )}
@@ -326,21 +322,36 @@ export default function NQueens() {
                     </div>
 
                     {/* Legend */}
-                    <div className="mt-8 flex gap-6 text-sm text-neutral-400 bg-neutral-900/50 px-6 py-3 rounded-full border border-neutral-800">
+                    <div className="mt-8 flex flex-wrap justify-center gap-4 md:gap-6 text-xs md:text-sm text-neutral-400 bg-neutral-900/50 px-6 py-3 rounded-full border border-neutral-800">
                         <div className="flex items-center gap-2">
                             <Crown size={16} className="text-purple-500" /> <span>Queen</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-neutral-900 border border-neutral-700" /> <span>Dark Tile</span>
+                            <div className="w-4 h-4 rounded bg-neutral-900 border border-neutral-700" /> <span>Dark</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-neutral-700 border border-neutral-600" /> <span>Light Tile</span>
+                            <div className="w-4 h-4 rounded bg-neutral-700 border border-neutral-600" /> <span>Light</span>
                         </div>
                         {mode === 'user' && (
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 rounded bg-red-900/50 border border-red-500" /> <span className="text-red-400">Conflict</span>
                             </div>
                         )}
+                    </div>
+                </div>
+
+                {/* --- 3. ALGO INSIGHT (Bottom Left) --- */}
+                <div className="lg:col-span-4">
+                    <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800">
+                        <h3 className="text-lg font-semibold mb-2 text-purple-300 flex items-center gap-2">
+                            <Info size={16} /> Algorithm Insight
+                        </h3>
+                        <p className="text-sm text-neutral-400 leading-relaxed mb-4">
+                            The AI uses <strong>Backtracking</strong>. It places queens column by column, checking for safety.
+                        </p>
+                        <p className="text-sm text-neutral-400 leading-relaxed">
+                            If a safe placement is found, it moves to the next row. If it hits a dead end, it <em>backtracks</em> to the previous row and tries a different column.
+                        </p>
                     </div>
                 </div>
 
