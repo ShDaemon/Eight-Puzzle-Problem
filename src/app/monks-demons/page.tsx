@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, RefreshCcw, Ghost, User, AlertTriangle, CheckCircle2, Footprints, Skull, Info } from 'lucide-react';
+import { ArrowLeft, Play, RefreshCcw, Ghost, User, Skull } from 'lucide-react';
 import Link from 'next/link';
 
 // --- Constants & Types ---
@@ -62,7 +62,6 @@ const solveBFS = () => {
 
             if (nextM < 0 || nextM > 3 || nextD < 0 || nextD > 3) continue;
 
-            // Check both banks including the boat's arrival
             if (!isValidState(nextM, nextD) || !isValidState(3 - nextM, 3 - nextD)) continue;
 
             const stateStr = `${nextM},${nextD},${nextB}`;
@@ -93,15 +92,13 @@ export default function MonksAndDemons() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // --- Derived State (Population-Sum Fix) ---
+    // --- Derived State ---
     const boatM = state.boatLoad.filter(c => c === 'monk').length;
     const boatD = state.boatLoad.filter(c => c === 'demon').length;
 
-    // Total on right = 3 - LeftGround - BoatCount
     const mRightGround = 3 - state.mLeft - boatM;
     const dRightGround = 3 - state.dLeft - boatD;
 
-    // Total counts per bank (Bank + Boat)
     const leftTotalM = state.mLeft + (state.boatPos === 'left' ? boatM : 0);
     const leftTotalD = state.dLeft + (state.boatPos === 'left' ? boatD : 0);
     const rightTotalM = mRightGround + (state.boatPos === 'right' ? boatM : 0);
@@ -150,11 +147,8 @@ export default function MonksAndDemons() {
 
         const newPos = state.boatPos === 'left' ? 'right' : 'left';
         setMovesCount(c => c + 1);
-
-        // Update position
         setState(p => ({ ...p, boatPos: newPos }));
 
-        // Check safety of the banks considering the boat's new position
         const checkLeftM = state.mLeft + (newPos === 'left' ? boatM : 0);
         const checkLeftD = state.dLeft + (newPos === 'left' ? boatD : 0);
         const checkRightM = mRightGround + (newPos === 'right' ? boatM : 0);
@@ -195,9 +189,10 @@ export default function MonksAndDemons() {
             const moveD = currentB === 0 ? currentD - step.d : step.d - currentD;
 
             setState(prev => {
-                const load = [];
-                for(let i=0; i<moveM; i++) load.push('monk' as CharacterType);
-                for(let i=0; i<moveD; i++) load.push('demon' as CharacterType);
+                // FIXED: Explicitly typed the array to match CharacterType[]
+                const load: CharacterType[] = [];
+                for(let i=0; i<moveM; i++) load.push('monk');
+                for(let i=0; i<moveD; i++) load.push('demon');
                 return currentB === 0
                     ? { ...prev, mLeft: prev.mLeft - moveM, dLeft: prev.dLeft - moveD, boatLoad: load }
                     : { ...prev, boatLoad: load };
@@ -227,7 +222,6 @@ export default function MonksAndDemons() {
             <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-8 lg:gap-12">
                 <div className="lg:col-span-8 order-1 lg:order-2 flex flex-col gap-6">
                     <div className="relative bg-neutral-900 rounded-[2.5rem] border border-neutral-800 shadow-2xl p-6 min-h-[75vh] lg:min-h-[600px] overflow-hidden flex flex-col-reverse justify-between">
-
                         <div className="absolute top-8 left-0 w-full text-center z-50 px-4 pointer-events-none">
                             <AnimatePresence mode='wait'>
                                 {message && (
@@ -287,7 +281,7 @@ export default function MonksAndDemons() {
                             </div>
 
                             {/* RIGHT BANK */}
-                            <div className={`flex-1 lg:flex-none lg:w-[30%] lg:h-[85%] bg-neutral-800/80 rounded-2xl lg:rounded-tl-[3rem] border border-neutral-700/50 relative flex flex-col justify-end p-4 pt-12 gap-4 backdrop-blur-sm transition-colors duration-500 z-10 ${rightLost ? 'bg-red-950/40 border-red-500/50' : ''}`}>
+                            <div className={`flex-1 lg:flex-none lg:w-[30%] lg:h-[85%] bg-neutral-800/80 rounded-2xl lg:rounded-tr-[3rem] border border-neutral-700/50 relative flex flex-col justify-end p-4 pt-12 gap-4 backdrop-blur-sm transition-colors duration-500 z-10 ${rightLost ? 'bg-red-950/40 border-red-500/50' : ''}`}>
                                 <span className="absolute top-4 right-4 font-bold text-neutral-500 text-xs uppercase tracking-widest z-10">Right Bank</span>
                                 <div className="flex-1 w-full overflow-y-auto no-scrollbar flex flex-col justify-end">
                                     <div className="grid grid-cols-3 gap-3 w-full max-w-[14rem] mx-auto">
